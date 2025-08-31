@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Janatyy Booking Firebase</title>
+<style>
+body{font-family:sans-serif;background:#f7f7f7;color:#222;margin:0;padding:0}
+header,footer{background:#222;color:#fff;text-align:center;padding:10px}
+main{padding:10px;max-width:1000px;margin:auto}
+.card{background:#fff;padding:15px;margin:10px 0;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+.grid{display:grid;gap:10px}
+.grid.two{grid-template-columns:1fr 1fr}
+.grid.three{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;margin-bottom:10px}
+label{font-weight:600}
+input,select,textarea,button{padding:8px;font:inherit}
+button{cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:6px;text-align:left}
+.actions{display:flex;gap:6px;margin-top:10px}
+.preview img{max-height:60px; margin-right:5px}
+#dashboard{display:none}
+</style>
+</head>
+<body>
+<header><h1>Janatyy Booking Firebase</h1></header>
+<main>
+<section class="card">
+<h2>ฟอร์มจองห้องพัก</h2>
+<form id="bookingForm">
+<div class="grid two">
+<div class="field">
+<label for="property">ห้องพัก <span class="req">*</span></label>
+<select id="property" required>
+<option value="">--เลือก--</option>
+<option value="Suratthani">Janatyy Guest House Suratthani</option>
+<option value="Hatyai">Janatyy Apartment Hatyai</option>
+</select>
+</div>
+<div class="field">
+<label for="rate">ราคา/คืน (บาท)</label>
+<input type="number" id="rate" value="1200">
+</div>
+</div>
+<div class="grid two">
+<div class="field">
+<label for="platform">Platform ที่จอง <span class="req">*</span></label>
+<select id="platform" required>
+<option value="">--เลือก--</option>
+<option value="direct">จองตรงผ่านทางเพจ</option>
+<option value="airbnb">Airbnb</option>
+<option value="booking">Booking</option>
+</select>
+</div>
+<div class="field">
+<label for="paymentMethod">ช่องทางชำระเงิน</label>
+<select id="paymentMethod">
+<option>โอนผ่านธนาคาร</option>
+<option>พร้อมเพย์</option>
+<option>เงินสดหน้างาน</option>
+</select>
+</div>
+</div>
+<div class="grid three">
+<div class="field"><label for="fullname">ชื่อ-นามสกุล <span class="req">*</span></label><input type="text" id="fullname" required></div>
+<div class="field"><label for="phone">เบอร์โทรศัพท์ <span class="req">*</span></label><input type="tel" id="phone" required></div>
+<div class="field"><label for="guests">จำนวนผู้เข้าพัก</label><input type="number" id="guests" value="1"></div>
+</div>
+<div class="grid three">
+<div class="field"><label for="checkin">วันที่เช็คอิน <span class="req">*</span></label><input type="date" id="checkin" required></div>
+<div class="field"><label for="checkout">วันที่เช็คเอาท์ <span class="req">*</span></label><input type="date" id="checkout" required></div>
+<div class="field"><label for="nights">จำนวนคืน</label><input type="number" id="nights" readonly></div>
+</div>
+<div class="grid two">
+<div class="field"><label for="idcard">บัตรประชาชน</label><input type="file" id="idcard" accept="image/*"><div class="preview" id="idPreview"></div></div>
+<div class="field"><label for="paymentSlip">สลิปโอน</label><input type="file" id="paymentSlip" accept="image/*,application/pdf"><div class="preview" id="slipPreview"></div></div>
+</div>
+<div class="field"><label for="note">หมายเหตุ</label><textarea id="note" rows="3"></textarea></div>
+<div class="field"><label for="total">ยอดรวมทั้งหมด</label><input type="number" id="total" readonly></div>
+<div class="actions"><button type="submit">บันทึกการจอง</button><button type="button" id="resetBtn">ล้างฟอร์ม</button></div>
+</form>
+</section>
+
+<section class="card">
+<h2>รายการจองล่าสุด</h2>
+<table id="bookingsTable">
+<thead><tr><th>วันที่จอง</th><th>ห้อง</th><th>Platform</th><th>ชื่อ-นามสกุล</th><th>โทร</th><th>เช็คอิน</th><th>เช็คเอาท์</th><th>คืน</th><th>ราคา/คืน</th><th>ยอดรวม</th></tr></thead>
+<tbody></tbody>
+</table>
+</section>
+
+<section class="card">
+<h2>เข้าสู่ระบบหลังบ้าน Admin</h2>
+<label>รหัสผ่าน:</label>
+<input type="password" id="adminPassword">
+<button id="loginBtn">เข้าสู่ระบบ</button>
+<div id="dashboard">
+<h2>สรุปการจองรายเดือน</h2>
+<table id="summaryTable"><thead><tr><th>เดือน</th><th>Suratthani</th><th>Hatyai</th><th>รวม</th></tr></thead><tbody></tbody></table>
+<h2>รายจ่าย</h2>
+<form id="expenseForm">
+<input type="date" id="expenseDate" required>
+<input type="text" id="expenseItem" placeholder="รายการค่าใช้จ่าย" required>
+<input type="number" id="expenseAmount" placeholder="จำนวนเงิน" required>
+<input type="text" id="expenseNote" placeholder="หมายเหตุ">
+<button type="submit">บันทึก</button>
+</form>
+<table id="expenseTable"><thead><tr><th>วันที่</th><th>รายการ</th><th>จำนวน</th><th>หมายเหตุ</th></tr></thead><tbody></tbody></table>
+<h3>รายรับสุทธิ: <span id="netIncome">0</span> บาท</h3>
+</div>
+</section>
+</main>
+<footer><small>© Janatyy</small></footer>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ----- แก้ไขส่วนนี้ด้วย Firebase Config ของคุณ -----
+const firebaseConfig = {
+  apiKey: "FIREBASE_API_KEY",
+  authDomain: "FIREBASE_AUTH_DOMAIN",
+  projectId: "FIREBASE_PROJECT_ID",
+  storageBucket: "FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "FIREBASE_MESSAGING_ID",
+  appId: "FIREBASE_APP_ID"
+};
+// ----------------------------------------------
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const bookingForm=document.getElementById("bookingForm");
+const checkin=document.getElementById("checkin"), checkout=document.getElementById("checkout"), nights=document.getElementById("nights"), rate=document.getElementById("rate"), total=document.getElementById("total");
+
+function recalc(){const ci=new Date(checkin.value), co=new Date(checkout.value);if(ci && co && co>ci){const n=Math.round((co-ci)/(1000*60*60*24)); nights.value=n; total.value=n*Number(rate.value||0);} else{nights.value=0; total.value=0;}}
+checkin.addEventListener("change",recalc); checkout.addEventListener("change",recalc); rate.addEventListener("input",recalc);
+
+// บันทึกจอง
+bookingForm.addEventListener("submit",async e=>{
+e.preventDefault();
+const data={property:document.getElementById("property").value, platform:document.getElementById("platform").value, fullname:document.getElementById("fullname").value, phone:document.getElementById("phone").value, guests:document.getElementById("guests").value, checkin:checkin.value, checkout:checkout.value, nights:nights.value, rate:rate.value, total:total.value, paymentMethod:document.getElementById("paymentMethod").value, note:document.getElementById("note").value, createdAt:new Date()};
+await db.collection("bookings").add(data);
+bookingForm.reset(); nights.value=0; total.value=0;
+alert("บันทึกสำเร็จ");
+});
+
+// ดึงรายการจองแบบเรียลไทม์
+db.collection("bookings").orderBy("createdAt","desc").onSnapshot(snapshot=>{
+const tbody=document.querySelector("#bookingsTable tbody");
+tbody.innerHTML="";
+snapshot.forEach(doc=>{
+const b=doc.data();
+const tr=document.createElement("tr");
+tr.innerHTML=`<td>${new Date(b.createdAt.seconds*1000).toLocaleString()}</td><td>${b.property}</td><td>${b.platform}</td><td>${b.fullname}</td><td>${b.phone}</td><td>${b.checkin}</td><td>${b.checkout}</td><td>${b.nights}</td><td>${b.rate}</td><td>${b.total}</td>`;
+tbody.appendChild(tr);
+});
+});
+</script>
+</body>
+</html>
