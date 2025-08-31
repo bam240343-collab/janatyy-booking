@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Janatyy Booking App (Standalone)</title>
+<style>
+body{font-family:sans-serif;background:#f7f7f7;color:#222;margin:0;padding:0}
+header,footer{background:#222;color:#fff;text-align:center;padding:10px}
+main{padding:10px;max-width:1000px;margin:auto}
+.card{background:#fff;padding:15px;margin:10px 0;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+.grid{display:grid;gap:10px}
+.grid.two{grid-template-columns:1fr 1fr}
+.grid.three{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;margin-bottom:10px}
+label{font-weight:600}
+input,select,textarea,button{padding:8px;font:inherit}
+button{cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:6px;text-align:left}
+.actions{display:flex;gap:6px;margin-top:10px}
+.preview img{max-height:60px; margin-right:5px}
+#dashboard{display:none}
+</style>
+</head>
+<body>
+<header>
+<h1>Janatyy Booking App</h1>
+</header>
+<main>
+<section class="card">
+<h2>ฟอร์มจองห้องพัก</h2>
+<form id="bookingForm">
+<div class="grid two">
+<div class="field">
+<label for="property">ห้องพัก <span class="req">*</span></label>
+<select id="property" required>
+<option value="">--เลือก--</option>
+<option value="Suratthani">Janatyy Guest House Suratthani</option>
+<option value="Hatyai">Janatyy Apartment Hatyai</option>
+</select>
+</div>
+<div class="field">
+<label for="rate">ราคา/คืน (บาท)</label>
+<input type="number" id="rate" value="1200">
+</div>
+</div>
+<div class="grid two">
+<div class="field">
+<label for="platform">Platform ที่จอง <span class="req">*</span></label>
+<select id="platform" required>
+<option value="">--เลือก--</option>
+<option value="direct">จองตรงผ่านทางเพจ</option>
+<option value="airbnb">Airbnb</option>
+<option value="booking">Booking</option>
+</select>
+</div>
+<div class="field">
+<label for="paymentMethod">ช่องทางชำระเงิน</label>
+<select id="paymentMethod">
+<option>โอนผ่านธนาคาร</option>
+<option>พร้อมเพย์</option>
+<option>เงินสดหน้างาน</option>
+</select>
+</div>
+</div>
+<div class="grid three">
+<div class="field"><label for="fullname">ชื่อ-นามสกุล <span class="req">*</span></label><input type="text" id="fullname" required></div>
+<div class="field"><label for="phone">เบอร์โทรศัพท์ <span class="req">*</span></label><input type="tel" id="phone" required></div>
+<div class="field"><label for="guests">จำนวนผู้เข้าพัก</label><input type="number" id="guests" value="1"></div>
+</div>
+<div class="grid three">
+<div class="field"><label for="checkin">วันที่เช็คอิน <span class="req">*</span></label><input type="date" id="checkin" required></div>
+<div class="field"><label for="checkout">วันที่เช็คเอาท์ <span class="req">*</span></label><input type="date" id="checkout" required></div>
+<div class="field"><label for="nights">จำนวนคืน</label><input type="number" id="nights" readonly></div>
+</div>
+<div class="grid two">
+<div class="field"><label for="idcard">บัตรประชาชน</label><input type="file" id="idcard" accept="image/*"><div class="preview" id="idPreview"></div></div>
+<div class="field"><label for="paymentSlip">สลิปโอน</label><input type="file" id="paymentSlip" accept="image/*,application/pdf"><div class="preview" id="slipPreview"></div></div>
+</div>
+<div class="field"><label for="note">หมายเหตุ</label><textarea id="note" rows="3"></textarea></div>
+<div class="field"><label for="total">ยอดรวมทั้งหมด</label><input type="number" id="total" readonly></div>
+<div class="actions"><button type="submit">บันทึกการจอง</button><button type="button" id="resetBtn">ล้างฟอร์ม</button></div>
+</form>
+</section>
+
+<section class="card">
+<h2>รายการจองล่าสุด</h2>
+<table id="bookingsTable">
+<thead><tr><th>วันที่จอง</th><th>ห้อง</th><th>Platform</th><th>ชื่อ-นามสกุล</th><th>โทร</th><th>เช็คอิน</th><th>เช็คเอาท์</th><th>คืน</th><th>ราคา/คืน</th><th>ยอดรวม</th><th>จัดการ</th></tr></thead>
+<tbody></tbody>
+</table>
+<div class="actions"><button id="exportCsvBtn">ดาวน์โหลด CSV</button><button id="clearAllBtn">ลบทั้งหมด</button></div>
+</section>
+
+<section class="card">
+<h2>เข้าสู่ระบบหลังบ้าน Admin</h2>
+<label>รหัสผ่าน:</label>
+<input type="password" id="adminPassword">
+<button id="loginBtn">เข้าสู่ระบบ</button>
+<div id="dashboard">
+<h2>สรุปการจองรายเดือน</h2>
+<table id="summaryTable"><thead><tr><th>เดือน</th><th>Suratthani</th><th>Hatyai</th><th>รวม</th></tr></thead><tbody></tbody></table>
+<h2>รายจ่าย</h2>
+<form id="expenseForm">
+<input type="date" id="expenseDate" required>
+<input type="text" id="expenseItem" placeholder="รายการค่าใช้จ่าย" required>
+<input type="number" id="expenseAmount" placeholder="จำนวนเงิน" required>
+<input type="text" id="expenseNote" placeholder="หมายเหตุ">
+<button type="submit">บันทึก</button>
+</form>
+<table id="expenseTable"><thead><tr><th>วันที่</th><th>รายการ</th><th>จำนวน</th><th>หมายเหตุ</th><th>จัดการ</th></tr></thead><tbody></tbody></table>
+<h3>รายรับสุทธิ: <span id="netIncome">0</span> บาท</h3>
+</div>
+</section>
+</main>
+<footer><small>© Janatyy</small></footer>
+
+<script>
+// ฟังก์ชันคำนวณคืนและยอดรวม
+const checkin=document.getElementById("checkin"), checkout=document.getElementById("checkout"), nights=document.getElementById("nights"), rate=document.getElementById("rate"), total=document.getElementById("total");
+function recalc(){const ci=new Date(checkin.value), co=new Date(checkout.value);if(ci && co && co>ci){const n=Math.round((co-ci)/(1000*60*60*24)); nights.value=n; total.value=n*Number(rate.value||0);} else{nights.value=0; total.value=0;}}
+checkin.addEventListener("change",recalc); checkout.addEventListener("change",recalc); rate.addEventListener("input",recalc);
+
+// storage
+function getBookings(){return JSON.parse(localStorage.getItem("janatyy_bookings")||"[]");}
+function saveBookings(list){localStorage.setItem("janatyy_bookings",JSON.stringify(list));}
+
+// render table
+function renderBookings(){const tbody=document.querySelector("#bookingsTable tbody"); tbody.innerHTML=""; getBookings().forEach(b=>{const tr=document.createElement("tr"); tr.innerHTML=`<td>${new Date(b.createdAt).toLocaleString()}</td><td>${b.property}</td><td>${b.platform}</td><td>${b.fullname}</td><td>${b.phone}</td><td>${b.checkin}</td><td>${b.checkout}</td><td>${b.nights}</td><td>${b.rate}</td><td>${b.total}</td><td><button onclick="deleteBooking(${b.id})">ลบ</button></td>`; tbody.appendChild(tr);});}
+function deleteBooking(id){let list=getBookings();list=list.filter(b=>b.id!==id); saveBookings(list); renderBookings();}
+bookingForm.addEventListener("submit",e=>{e.preventDefault(); const payload={id:Date.now(), createdAt:new Date().toISOString(), property:document.getElementById("property").value, platform:document.getElementById("platform").value, fullname:document.getElementById("fullname").value, phone:document.getElementById("phone").value, guests:document.getElementById("guests").value, checkin:checkin.value, checkout:checkout.value, nights:nights.value, rate:rate.value, total:total.value, paymentMethod:document.getElementById("paymentMethod").value, note:document.getElementById("note").value}; const list=getBookings(); list.unshift(payload); saveBookings(list); alert("บันทึกเรียบร้อย"); bookingForm.reset(); nights.value=0; total.value=0; renderBookings();});
+document.getElementById("resetBtn").addEventListener("click",()=>{bookingForm.reset(); nights.value=0; total.value=0;});
+document.getElementById("exportCsvBtn").addEventListener("click",()=>{const rows=[["วันที่จอง","ห้อง","Platform","ชื่อ","โทร","เช็คอิน","เช็คเอาท์","คืน","ราคา/คืน","ยอดรวม"]]; getBookings().forEach(b=>rows.push([new Date(b.createdAt).toLocaleString(),b.property,b.platform,b.fullname,b.phone,b.checkin,b.checkout,b.nights,b.rate,b.total])); const csvContent="data:text/csv;charset=utf-8,"+rows.map(e=>e.join(",")).join("\n"); const encodedUri=encodeURI(csvContent); const link=document.createElement("a"); link.setAttribute("href",encodedUri); link.setAttribute("download","bookings.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);});
+document.getElementById("clearAllBtn").addEventListener("click",()=>{if(confirm("ลบข้อมูลทั้งหมด?")){localStorage.removeItem("janatyy_bookings"); renderBookings();}});
+renderBookings();
+
+// Admin login & dashboard
+const loginBtn=document.getElementById("loginBtn"), dashboard=document.getElementById("dashboard");
+loginBtn.addEventListener("click",()=>{const pw=document.getElementById("adminPassword").value; if(pw==="240343"){dashboard.style.display="block"; loginBtn.style.display="none"; document.getElementById("adminPassword").style.display="none"; renderAdmin();} else{alert("รหัสผ่านไม่ถูกต้อง");}});
+function renderAdmin(){
+  // สรุปการจองรายเดือน
+  const summaryBody=document.querySelector("#summaryTable tbody");
+  const bookings=getBookings();
+  let summary={};
+  bookings.forEach(b=>{const m=new Date(b.createdAt).toLocaleString('th-TH',{month:'long',year:'numeric'}); if(!summary[m]) summary[m]={Suratthani:0,Hatyai:0,total:0}; const amt=Number(b.total||0); summary[m][b.property]+=amt; summary[m].total+=amt;});
+  summaryBody.innerHTML=""; for(let month in summary){const row=document.createElement("tr"); row.innerHTML=`<td>${month}</td><td>${summary[month].Suratthani}</td><td>${summary[month].Hatyai}</td><td>${summary[month].total}</td>`; summaryBody.appendChild(row);}
+
+  // รายจ่าย
+  const expenseForm=document.getElementById("expenseForm");
+  const expenseTableBody=document.querySelector("#expenseTable tbody");
+  function renderExpenses(){
+    let expenses=JSON.parse(localStorage.getItem("janatyy_expenses")||"[]");
+    expenseTableBody.innerHTML=""; expenses.forEach((ex,i)=>{const tr=document.createElement("tr"); tr.innerHTML=`<td>${ex.date}</td><td>${ex.item}</td><td>${ex.amount}</td><td>${ex.note}</td><td><button onclick="deleteExpense(${i})">ลบ</button></td>`; expenseTableBody.appendChild(tr);});
+    const totalExpense=expenses.reduce((a,e)=>a+Number(e.amount||0),0);
+    const totalIncome=bookings.reduce((a,b)=>a+Number(b.total||0),0);
+    document.getElementById("netIncome").innerText=totalIncome-totalExpense;
+  }
+  window.deleteExpense=function(i){let ex=JSON.parse(localStorage.getItem("janatyy_expenses")||"[]"); ex.splice(i,1); localStorage.setItem("janatyy_expenses",JSON.stringify(ex)); renderExpenses();}
+  expenseForm.addEventListener("submit",e=>{e.preventDefault(); let expenses=JSON.parse(localStorage.getItem("janatyy_expenses")||"[]"); expenses.push({date:document.getElementById("expenseDate").value,item:document.getElementById("expenseItem").value,amount:document.getElementById("expenseAmount").value,note:document.getElementById("expenseNote").value}); localStorage.setItem("janatyy_expenses",JSON.stringify(expenses)); expenseForm.reset(); renderExpenses();});
+  renderExpenses();
+}
+</script>
+</body>
+</html>
